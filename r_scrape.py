@@ -1,5 +1,6 @@
 import csv
 import time
+import requests
 
 # pip install selenium
 from selenium import webdriver
@@ -19,6 +20,7 @@ r_address_xpath = "//*[@class='LrzXr']"
 r_phone_css_selector = ".LrzXr.zdqRlf.kno-fv"
 r_close_xpath = "//*[@class='QU77pf']"
 next_page_id = "pnnext"
+api_key = ""
 
 
 def add_key(by, value, obj, key):
@@ -47,8 +49,9 @@ def check_exists_or_wait(by, value):
         time.sleep(2)
 
 
-def parse_restaurant():
+def parse_restaurant(index):
     check_exists_or_wait(By.XPATH, r_name_xpath)
+    cid = browser.find_elements(By.XPATH, "//a[@jsname = 'kj0dLd']")[index].get_attribute("data-cid")
     restaurant = {
         "name": browser.find_element(By.XPATH, r_name_xpath).text,
         "address": browser.find_element(By.XPATH,
@@ -56,7 +59,10 @@ def parse_restaurant():
         "phone": browser.find_element(By.CSS_SELECTOR,
                                       r_phone_css_selector).text if check_exists(By.CSS_SELECTOR,
                                                                                  r_phone_css_selector) else "",
+        "maps_links": "https://maps.google.com/maps?cid=" + cid
     }
+    # request_url = "https://maps.googleapis.com/maps/api/place/details/json?cid="+cid+"&key="+api_key
+    # json_data = requests.get(request_url)
     print(restaurant)
     return restaurant
 
@@ -65,7 +71,7 @@ def res_page(rest_dict):
     div_length = len(browser.find_elements(By.XPATH, r_xpath))
     for i in range(div_length):
         browser.find_elements(By.XPATH, r_xpath)[i].click()
-        rest_dict.append(parse_restaurant())
+        rest_dict.append(parse_restaurant(i))
         browser.find_element(By.XPATH, r_close_xpath).click()
         time.sleep(2)
 
